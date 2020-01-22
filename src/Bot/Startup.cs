@@ -30,6 +30,7 @@ namespace UofUStudentVerificationBot
             IServiceCollection services = new ServiceCollection();
             services.AddSingleton<LogService>()
                     .AddSingleton<StartupService>()
+                    .AddSingleton<CommandHandler>()
                     .AddSingleton(new DiscordSocketClient())
                     .AddSingleton(new CommandService())
                     .AddSingleton(this.Config);
@@ -37,6 +38,7 @@ namespace UofUStudentVerificationBot
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             serviceProvider.GetRequiredService<LogService>();
             serviceProvider.GetRequiredService<StartupService>();
+            serviceProvider.GetRequiredService<CommandHandler>();
 
             // the startup service actually runs the bot
             await serviceProvider.GetRequiredService<StartupService>().StartAsync();
