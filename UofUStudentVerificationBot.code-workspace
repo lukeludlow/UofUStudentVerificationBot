@@ -1,0 +1,26 @@
+{
+    "folders": [
+      {
+        "path": "."
+      }
+    ],
+    "settings": {
+      "files.autoSave": "afterDelay",
+      "dotnet-test-explorer.testProjectPath": "**/*(Tests).csproj",
+      "csharpfixformat.style.braces.onSameLine": true,
+      "[csharp]": {
+        "editor.defaultFormatter": "ms-vscode.csharp",
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+      },
+      "csharp.format.enable": true,
+      "editor.formatOnSave": true,
+      "coverage-gutters.coverageReportFileName": "**/lcov.info",
+      "omnisharp.useEditorFormattingSettings": false,
+      "editor.wordWrap": "wordWrapColumn",
+      "editor.wordWrapColumn": 140,
+      "editor.wrappingIndent": "deepIndent",
+      "editor.glyphMargin": true
+    }
+  }
+  

@@ -11,6 +11,7 @@ lcov.info
 .DS_Store
 *.png 
 *.psd 
+.vscode
 
 ### DotnetCore ###
 # .NET Core build folders
