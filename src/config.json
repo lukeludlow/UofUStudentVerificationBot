@@ -1,5 +1,14 @@
 {
   "Discord": {
-    "BotToken": ""
+    "BotToken": "",
+    "GuildID": "",
+    "VerificationChannelID": "",
+    "VerifiedRoleName": ""
+  },
+  "Smtp": {
+    "Host": "",
+    "Port": 0,
+    "Username": "",
+    "Password": ""
   }
 }

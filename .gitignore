@@ -1,17 +1,16 @@
-# secrets 
-config.json
+# system
+.DS_Store
+*.png 
+*.psd 
+.vscode
+
+#config.json
 
 # data 
 *.db 
 
 # code coverage output
 lcov.info
-
-# system
-.DS_Store
-*.png 
-*.psd 
-.vscode
 
 ### DotnetCore ###
 # .NET Core build folders
