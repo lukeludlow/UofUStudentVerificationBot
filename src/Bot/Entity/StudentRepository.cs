@@ -13,11 +13,6 @@ namespace UofUStudentVerificationBot
             this.dbContext = dbContext;
         }
 
-        public StudentRepository()
-        {
-            this.dbContext = new StudentDbContext();
-        }
-
         public IList<Student> GetAllStudents()
         {
             return dbContext.Students.ToList();
@@ -25,18 +20,28 @@ namespace UofUStudentVerificationBot
 
         public Student GetStudentByDiscordID(ulong discordID)
         {
-            // return FirstOrDefault! do not return null!!!
-            throw new NotImplementedException();
+            // if not found, returns an empty/default student instead of null
+            return dbContext.Students.Find(discordID) ?? new Student();
         }
 
         public void AddOrUpdateStudent(Student student)
         {
-            throw new NotImplementedException();
+            Student existingStudent = dbContext.Students.Where(s => s.DiscordID == student.DiscordID).FirstOrDefault();
+            if (existingStudent == null) {
+                dbContext.Students.Add(student);
+            } else {
+                dbContext.Entry(existingStudent).CurrentValues.SetValues(student);
+            }
+            dbContext.SaveChanges();
         }
 
         public void RemoveStudentByDiscordID(ulong discordID)
         {
-            throw new NotImplementedException();
+            Student student = dbContext.Students.Find(discordID);
+            if (student != null) {
+                dbContext.Students.Remove(student);
+                dbContext.SaveChanges();
+            }
         }
 
     }
