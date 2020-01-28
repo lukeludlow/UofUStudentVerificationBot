@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Discord.WebSocket;
 using Discord.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace UofUStudentVerificationBot
 {
@@ -31,6 +32,11 @@ namespace UofUStudentVerificationBot
             services.AddSingleton<LogService>()
                     .AddSingleton<StartupService>()
                     .AddSingleton<CommandHandler>()
+                    .AddSingleton<StudentVerificationService>()
+                    .AddSingleton<IStudentRepository, StudentRepository>()
+                    .AddSingleton<IEmailService, EmailService>()
+                    .AddSingleton<IRoleAssignmentService, RoleAssignmentService>()
+                    .AddDbContext<StudentDbContext>(options => options.UseSqlite("DataSource=students.db"))
                     .AddSingleton(new DiscordSocketClient())
                     .AddSingleton(new CommandService())
                     .AddSingleton(this.Config);
@@ -39,6 +45,7 @@ namespace UofUStudentVerificationBot
             serviceProvider.GetRequiredService<LogService>();
             serviceProvider.GetRequiredService<StartupService>();
             serviceProvider.GetRequiredService<CommandHandler>();
+            // serviceProvider.GetRequiredService<StudentVerificationService>();
 
             // the startup service actually runs the bot
             await serviceProvider.GetRequiredService<StartupService>().StartAsync();

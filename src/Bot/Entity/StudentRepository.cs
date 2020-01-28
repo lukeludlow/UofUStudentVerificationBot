@@ -43,6 +43,5 @@ namespace UofUStudentVerificationBot
                 dbContext.SaveChanges();
             }
         }
-
     }
 }
