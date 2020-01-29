@@ -7,8 +7,11 @@
   },
   "Smtp": {
     "Host": "",
-    "Port": 0,
+    "Port": "",
     "Username": "",
     "Password": ""
+  },
+  "Db": {
+    "Path": ""
   }
 }
