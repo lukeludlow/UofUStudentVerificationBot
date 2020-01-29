@@ -6,59 +6,64 @@ using Microsoft.Extensions.Configuration;
 using Discord.WebSocket;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
+using Discord;
+using System.Reflection;
 
 namespace UofUStudentVerificationBot
 {
     public class Startup
     {
 
-        public IConfiguration Config { get; private set; }
-
-        public Startup()
-        {
-        }
-
         public static async Task MainAsync()
         {
             Startup startup = new Startup();
-            await startup.RunAsync();
+            await startup.StartAsync();
         }
 
-        public async Task RunAsync()
+        public async Task StartAsync()
         {
-            this.Config = BuildConfig();
+            IServiceProvider serviceProvider = BuildServices();
+            await StartRunningBot(serviceProvider);
+            await Task.Delay(-1); // keep the bot alive until the program is closed
+        }
 
-            IServiceCollection services = new ServiceCollection();
-            services.AddSingleton<LogService>()
-                    .AddSingleton<StartupService>()
-                    .AddSingleton<CommandHandler>()
-                    .AddSingleton<StudentVerificationService>()
-                    .AddSingleton<IStudentRepository, StudentRepository>()
-                    .AddSingleton<IEmailService, EmailService>()
-                    .AddSingleton<IRoleAssignmentService, RoleAssignmentService>()
-                    .AddDbContext<StudentDbContext>(options => options.UseSqlite("DataSource=students.db"))
-                    .AddSingleton(new DiscordSocketClient())
-                    .AddSingleton(new CommandService())
-                    .AddSingleton(this.Config);
-
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
-            serviceProvider.GetRequiredService<LogService>();
-            serviceProvider.GetRequiredService<StartupService>();
+        private async Task StartRunningBot(IServiceProvider serviceProvider)
+        {
+            // start running some of the required services that we need
             serviceProvider.GetRequiredService<CommandHandler>();
-            // serviceProvider.GetRequiredService<StudentVerificationService>();
+            serviceProvider.GetRequiredService<LogService>();
+            DiscordSocketClient discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
+            CommandService commandService = serviceProvider.GetRequiredService<CommandService>();
+            IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
+            await discordClient.LoginAsync(TokenType.Bot, config["Discord:BotToken"]);
+            await discordClient.StartAsync();
+            await commandService.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider); 
+        }
 
-            // the startup service actually runs the bot
-            await serviceProvider.GetRequiredService<StartupService>().StartAsync();
-            // keep the bot alive until the program is closed
-            await Task.Delay(-1);
+        private IServiceProvider BuildServices()
+        {
+            IConfiguration config = BuildConfig();
+            IServiceCollection serviceCollection = new ServiceCollection()
+                .AddSingleton<LogService>()
+                .AddSingleton<CommandHandler>()
+                .AddSingleton<StudentVerificationService>()
+                .AddSingleton<StudentRepository>()
+                .AddSingleton<EmailService>()
+                .AddSingleton<RoleAssignmentService>()
+                .AddDbContext<StudentDbContext>(options => options.UseSqlite($"DataSource={config["Db:Path"]}"))
+                .AddSingleton(new DiscordSocketClient())
+                .AddSingleton(new CommandService())
+                .AddSingleton(config);
+            IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+            return serviceProvider;
         }
 
         private IConfiguration BuildConfig()
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
-                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                    .AddJsonFile("config.json", optional: false, reloadOnChange: true)
-                                    .AddEnvironmentVariables();
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("config.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
             return builder.Build();
         }
 
