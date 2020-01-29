@@ -15,28 +15,29 @@ namespace UofUStudentVerificationBot
             this.commandService = commandService;
         }
 
-        [Command("info")]
-        [Summary("get more information about this bot")]
-        public async Task Info()
-        {
-            // TODO
-            // framework (dotnet core, discord.net)
-            // author (luke)
-            // source code github link
-            // use "help" to see all available commands
-            // create an embed so i can do a hyperlink to github and stuff
-            string infoMessage = "todo help message. made by luke. here's the github link.";
-            await Context.Channel.SendMessageAsync(infoMessage);
-        }
+        // [Command("info")]
+        // [Summary("get more information about this bot")]
+        // public async Task Info()
+        // {
+        //     // TODO
+        //     // framework (dotnet core / netcoreapp, discord.net)
+        //     // author (luke)
+        //     // source code github link
+        //     // deployed to azure secure vm
+        //     // use "help" to see all available commands
+        //     // create an embed so i can do a hyperlink to github and stuff
+        //     string infoMessage = "todo help message. made by luke. here's the github link.";
+        //     await Context.Channel.SendMessageAsync(infoMessage);
+        // }
 
-        [Command("help")]
-        [Summary("show help messages for all available commands")]
-        public async Task Help()
-        {
-            // TODO
-            string helpMessage = "todo help message";
-            await Context.Channel.SendMessageAsync(helpMessage);
-        }
+        // [Command("help")]
+        // [Summary("show help messages for all available commands")]
+        // public async Task Help()
+        // {
+        //     // TODO
+        //     string helpMessage = "todo help message";
+        //     await Context.Channel.SendMessageAsync(helpMessage);
+        // }
 
         // TODO create a default fallthrough command that executes anytime the bot is directly mentioned 
         // [Command("")]
