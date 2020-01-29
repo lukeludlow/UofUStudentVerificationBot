@@ -23,31 +23,39 @@ namespace UofUStudentVerificationBot
 
         public VerificationResult BeginVerification(ulong discordID, string uID)
         {
-            VerificationResult validateInputsResult = ValidateBeginVerificationInputs(discordID, uID);
-            if (!validateInputsResult.IsSuccess) {
-                return validateInputsResult;
+            try {
+                VerificationResult validateInputsResult = ValidateBeginVerificationInputs(discordID, uID);
+                if (!validateInputsResult.IsSuccess) {
+                    return validateInputsResult;
+                }
+                string verificationCode = GenerateSixDigitVerificationCode();
+                Student student = new Student(discordID, uID, verificationCode, false);
+                studentRepository.AddOrUpdateStudent(student);
+                emailService.SendEmail(uID, verificationCode);
+                return VerificationResult.FromSuccess();
+            } catch (Exception e) {
+                return VerificationResult.FromError(e.Message);
             }
-            string verificationCode = GenerateSixDigitVerificationCode();
-            Student student = new Student(discordID, uID, verificationCode, false);
-            studentRepository.AddOrUpdateStudent(student);
-            emailService.SendEmail(uID, verificationCode);
-            return VerificationResult.FromSuccess();
         }
 
         public VerificationResult CompleteVerification(ulong discordID, string verificationCode)
         {
-            VerificationResult validateInputsResult = ValidateCompleteVerificationInputs(discordID, verificationCode);
-            if (!validateInputsResult.IsSuccess) {
-                return validateInputsResult;
-            }
-            Student student = studentRepository.GetStudentByDiscordID(discordID);
-            if (student.VerificationCode == verificationCode) {
-                Student verifiedStudent = new Student(student.DiscordID, student.UID, verificationCode, isVerificationComplete: true);
-                studentRepository.AddOrUpdateStudent(verifiedStudent);
-                roleAssignmentService.AssignVerifiedRoleToDiscordUser(discordID);
-                return VerificationResult.FromSuccess();
-            } else {
-                return VerificationResult.FromError("incorrect verification code");
+            try {
+                VerificationResult validateInputsResult = ValidateCompleteVerificationInputs(discordID, verificationCode);
+                if (!validateInputsResult.IsSuccess) {
+                    return validateInputsResult;
+                }
+                Student student = studentRepository.GetStudentByDiscordID(discordID);
+                if (student.VerificationCode == verificationCode) {
+                    Student verifiedStudent = new Student(student.DiscordID, student.UID, verificationCode, isVerificationComplete: true);
+                    studentRepository.AddOrUpdateStudent(verifiedStudent);
+                    roleAssignmentService.AssignVerifiedRoleToDiscordUser(discordID);
+                    return VerificationResult.FromSuccess();
+                } else {
+                    return VerificationResult.FromError("incorrect verification code");
+                }
+            } catch (Exception e) {
+                return VerificationResult.FromError(e.Message);
             }
         }
 

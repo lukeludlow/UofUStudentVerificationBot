@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -19,32 +20,40 @@ namespace UofUStudentVerificationBot
 
         public void AssignVerifiedRoleToDiscordUser(ulong discordID)
         {
-            IGuild guild = discordClient.Guilds
-                .Where(guild => guild.Id == config.GetValue<ulong>("Discord:GuildID"))
-                .FirstOrDefault();
-            IRole verifiedRole = guild.Roles
-                .Where(role => role.Name == config["Discord:VerifiedRoleName"])
-                .FirstOrDefault();
-            SocketGuildUser user = guild.GetUserAsync(discordID).Result as SocketGuildUser;
-            user.AddRoleAsync(verifiedRole);
+            if (GetGuildAndVerifiedRole(out IGuild guild, out IRole verifiedRole)) {
+                SocketGuildUser user = guild.GetUserAsync(discordID).Result as SocketGuildUser;
+                user.AddRoleAsync(verifiedRole);
+            }
         }
 
         public void RemoveVerifiedRoleFromDiscordUser(ulong discordID)
         {
-            IGuild guild = discordClient.Guilds
+            if (GetGuildAndVerifiedRole(out IGuild guild, out IRole verifiedRole)) {
+                SocketGuildUser user = guild.GetUserAsync(discordID).Result as SocketGuildUser;
+                user.RemoveRoleAsync(verifiedRole);
+            }
+        }
+
+        private bool GetGuildAndVerifiedRole(out IGuild guild, out IRole verifiedRole)
+        {
+            guild = discordClient.Guilds
                 .Where(guild => guild.Id == config.GetValue<ulong>("Discord:GuildID"))
                 .FirstOrDefault();
-            IRole verifiedRole = guild.Roles
+            verifiedRole = guild.Roles
                 .Where(role => role.Name == config["Discord:VerifiedRoleName"])
-                 .FirstOrDefault();
-            SocketGuildUser user = guild.GetUserAsync(discordID).Result as SocketGuildUser;
-            user.RemoveRoleAsync(verifiedRole);
+                .FirstOrDefault();
+            // check if the guild and role were actually found (defaults won't have the matching id/name)
+            if (guild.Id != config.GetValue<ulong>("Discord:GuildID") && verifiedRole.Name != config["Discord:VerifiedRoleName"]) {
+                return true;
+            } else {
+                // this means that the guild id or verified channel name are incorrect or not found.
+                // this is a problem with the config file and/or the discord server settings.
+                return false;
+            }
         }
 
         // TODO
-        // private SocketGuildUser GetGuildUser
-        // create a delegate for something
-
+        // private delegate GuildUserRoleAction ...
 
     }
 }
