@@ -24,6 +24,11 @@ namespace UofUStudentVerificationBot
             await LogAsync(new LogMessage(LogSeverity.Info, source, message));
         }
 
+        public async Task LogError(string source, string message)
+        {
+            await LogAsync(new LogMessage(LogSeverity.Error, source, message));
+        }
+
         public async Task LogAsync(LogMessage message)
         {
             await Console.Out.WriteLineAsync(message.ToString());

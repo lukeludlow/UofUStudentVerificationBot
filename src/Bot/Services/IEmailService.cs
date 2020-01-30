@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
+
 namespace UofUStudentVerificationBot
 {
     public interface IEmailService
     {
-        void SendEmail(string uID, string verificationCode);
+        Task SendEmail(string uID, string verificationCode);
     }
 }
