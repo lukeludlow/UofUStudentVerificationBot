@@ -43,7 +43,7 @@ namespace UofUStudentVerificationBot
                 .Where(role => role.Name == config["Discord:VerifiedRoleName"])
                 .FirstOrDefault();
             // check if the guild and role were actually found (defaults won't have the matching id/name)
-            if (guild.Id != config.GetValue<ulong>("Discord:GuildID") && verifiedRole.Name != config["Discord:VerifiedRoleName"]) {
+            if (guild.Id == config.GetValue<ulong>("Discord:GuildID") && verifiedRole.Name == config["Discord:VerifiedRoleName"]) {
                 return true;
             } else {
                 // this means that the guild id or verified channel name are incorrect or not found.

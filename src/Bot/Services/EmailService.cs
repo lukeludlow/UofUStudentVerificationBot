@@ -28,7 +28,7 @@ namespace UofUStudentVerificationBot
                 mailMessage.From = new MailAddress(config["Smtp:Username"]);  
                 mailMessage.To.Add(new MailAddress($"{uID}@umail.utah.edu"));
                 mailMessage.Subject = "discord verification code";
-                mailMessage.Body = $"if you requested verification for the UofU Anime Club discord, then reply to the bot's DM with this code:\n\n{verificationCode}\n\nif this wasn't you, then you can safely ignore and delete this email.";
+                mailMessage.Body = $"if you requested verification from the UofU Student Verification Discord Bot, then reply to the bot's DM with this code:\n\n{verificationCode}\n\nif this wasn't you, then you can safely ignore and delete this email.";
                 await logService.LogInfo("EmailService", $"sending verification email to {uID}@umail.utah.edu...");
                 smtpClient.Send(mailMessage);
             }

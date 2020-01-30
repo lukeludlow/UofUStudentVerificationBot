@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace UofUStudentVerificationBot
@@ -15,15 +16,23 @@ namespace UofUStudentVerificationBot
 
         public StudentVerificationService(IServiceProvider serviceProvider)
         {
-            this.studentRepository = serviceProvider.GetRequiredService<IStudentRepository>();
-            this.emailService = serviceProvider.GetRequiredService<IEmailService>();
-            this.roleAssignmentService = serviceProvider.GetRequiredService<IRoleAssignmentService>();
+            this.studentRepository = serviceProvider.GetRequiredService<StudentRepository>();
+            this.emailService = serviceProvider.GetRequiredService<EmailService>();
+            this.roleAssignmentService = serviceProvider.GetRequiredService<RoleAssignmentService>();
             this.randomGenerator = new Random();
         }
 
         public VerificationResult BeginVerification(ulong discordID, string uID)
         {
             try {
+                if (IsDiscordUserVerifiedStudent(discordID)) {
+                    // assign the verified role again just in case it got deleted
+                    // roleAssignmentService.AssignVerifiedRoleToDiscordUser(discordID);
+                    string errorMessage = $"user is already verified with uID {uID}.";
+                    errorMessage += " if you to reset your verification (e.g. if you used the wrong uID or accidentally lost";
+                    errorMessage += " the verified role), use the `$reset` command and then `$verify <uID>` again.";
+                    return VerificationResult.FromError(errorMessage);
+                }
                 VerificationResult validateInputsResult = ValidateBeginVerificationInputs(discordID, uID);
                 if (!validateInputsResult.IsSuccess) {
                     return validateInputsResult;
@@ -32,7 +41,10 @@ namespace UofUStudentVerificationBot
                 Student student = new Student(discordID, uID, verificationCode, false);
                 studentRepository.AddOrUpdateStudent(student);
                 emailService.SendEmail(uID, verificationCode);
-                return VerificationResult.FromSuccess();
+                string beginVerificationSuccessMessage = $"okay, i sent an email to your umail address ({uID}@umail.utah.edu).";
+                beginVerificationSuccessMessage += "\n**once you've received your code, DM it to me** (just reply to this message)."; 
+                beginVerificationSuccessMessage += " DON'T send your code in the get-verified channel.";
+                return VerificationResult.FromSuccess(beginVerificationSuccessMessage);
             } catch (Exception e) {
                 return VerificationResult.FromError(e.Message);
             }
@@ -41,6 +53,15 @@ namespace UofUStudentVerificationBot
         public VerificationResult CompleteVerification(ulong discordID, string verificationCode)
         {
             try {
+                if (IsDiscordUserVerifiedStudent(discordID)) {
+                    // assign the verified role again just in case it got deleted
+                    // roleAssignmentService.AssignVerifiedRoleToDiscordUser(discordID);
+                    // return VerificationResult.FromSuccess("user is already verified");
+                    string errorMessage = $"user is already verified.";
+                    errorMessage += " if you to reset your verification (e.g. if you used the wrong uID or accidentally lost";
+                    errorMessage += " the verified role), use the `$reset` command and then `$verify <uID>` again.";
+                    return VerificationResult.FromError(errorMessage);
+                }
                 VerificationResult validateInputsResult = ValidateCompleteVerificationInputs(discordID, verificationCode);
                 if (!validateInputsResult.IsSuccess) {
                     return validateInputsResult;
@@ -50,7 +71,7 @@ namespace UofUStudentVerificationBot
                     Student verifiedStudent = new Student(student.DiscordID, student.UID, verificationCode, isVerificationComplete: true);
                     studentRepository.AddOrUpdateStudent(verifiedStudent);
                     roleAssignmentService.AssignVerifiedRoleToDiscordUser(discordID);
-                    return VerificationResult.FromSuccess();
+                    return VerificationResult.FromSuccess("you've been successfully verified!");
                 } else {
                     return VerificationResult.FromError("incorrect verification code");
                 }
@@ -59,10 +80,14 @@ namespace UofUStudentVerificationBot
             }
         }
 
-        public void ResetVerification(ulong discordID)
+        public VerificationResult ResetVerification(ulong discordID)
         {
             roleAssignmentService.RemoveVerifiedRoleFromDiscordUser(discordID);
-            studentRepository.RemoveStudentByDiscordID(69);
+            studentRepository.RemoveStudentByDiscordID(discordID);
+            string resetVerificationMessage = "i've reset your verification status.";
+            resetVerificationMessage += " you can begin the verification process again by using `$verify <uID>`.";
+            resetVerificationMessage += " if you're still having a problem (e.g. your uID has been verified by another user), message one of the mods.";
+            return VerificationResult.FromSuccess(resetVerificationMessage);
         }
 
         public bool IsDiscordUserVerifiedStudent(ulong discordID)
@@ -74,11 +99,11 @@ namespace UofUStudentVerificationBot
 
         private VerificationResult ValidateBeginVerificationInputs(ulong discordID, string uID)
         {
-            if (IsDiscordUserVerifiedStudent(discordID)) {
-                return VerificationResult.FromError("user is already verified");
-            }
+            // if (IsDiscordUserVerifiedStudent(discordID)) {
+            //     return VerificationResult.FromError("user is already verified");
+            // }
             if (!IsValidUIDFormat(uID)) {
-                return VerificationResult.FromError("uID is not properly formatted. your uID should look like this: u1234567");
+                return VerificationResult.FromError("uID is not properly formatted. your uID should look like this: u0123456");
             }
             if (IsUIDAlreadyVerified(uID)) {
                 string errorMessage = "someone else has already verified their student status with that uID.";
@@ -91,9 +116,9 @@ namespace UofUStudentVerificationBot
         private VerificationResult ValidateCompleteVerificationInputs(ulong discordID, string verificationCode)
         {
             string uID = studentRepository.GetStudentByDiscordID(discordID).UID;
-            if (IsDiscordUserVerifiedStudent(discordID)) {
-                return VerificationResult.FromError("user is already verified");
-            }
+            // if (IsDiscordUserVerifiedStudent(discordID)) {
+            //     return VerificationResult.FromError("user is already verified");
+            // }
             if (!IsValidVerificationCodeFormat(verificationCode)) {
                 return VerificationResult.FromError("verification code is not properly formatted. " +
                     "verification code should be just 6 digits, like this: 123123");

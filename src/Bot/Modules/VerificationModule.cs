@@ -19,24 +19,15 @@ namespace UofUStudentVerificationBot
 
         [Command("verify")]
         [Summary("get verified")]
-        public async Task Verify(string uID)
-        {
-            await Task.Run(() => verificationService.BeginVerification(Context.User.Id, uID));
-        }
-
-        [Command("code")]
-        [Summary("temporary, delete this")]
-        public async Task CompleteVerification(string code)
-        {
-            await Task.Run(() => verificationService.CompleteVerification(Context.User.Id, code));
-        }
+        public async Task<RuntimeResult> Verify(string uID) => await Task.Run(() =>
+            verificationService.BeginVerification(Context.User.Id, uID)
+        );
 
         [Command("reset")]
         [Summary("reset verification status (this will remove your verified student permissions and unlink your uID)")]
-        public async Task Reset()
-        {
-            await Task.Run(() => verificationService.ResetVerification(Context.User.Id));
-        }
+        public async Task<RuntimeResult> Reset() => await Task.Run(() =>
+            verificationService.ResetVerification(Context.User.Id)
+        );
 
     }
 }
